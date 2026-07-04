@@ -797,8 +797,6 @@ elif page == "🫁 Pneumonia Assessment":
                     user_input
                 )[0]
                 
-                st.write("Raw prediction:", prediction)
-                st.write("Model classes:", pneumonia_model.classes_)
                 
                 results = {
                     0: "Normal",
