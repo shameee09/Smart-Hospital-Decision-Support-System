@@ -3,6 +3,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from datetime import datetime
+from pathlib import Path
 
 # =====================================================
 # PAGE CONFIGURATION
@@ -15,27 +16,37 @@ st.set_page_config(
 )
 
 # =====================================================
-# MODEL PATHS
+# MODEL PATHS - LOCAL + CLOUD DEPLOYMENT
 # =====================================================
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 DIABETIC_MODEL_PATH = (
-    r"D:\smart decision\Final models\diabetic"
-    r"\diabetic_readmission_model.pkl"
+    BASE_DIR
+    / "Final models"
+    / "diabetic"
+    / "diabetic_readmission_model.pkl"
 )
 
 PNEUMONIA_MODEL_PATH = (
-    r"D:\smart decision\Final models\Pneumoia"
-    r"\Pneumonia_model.pkl"
+    BASE_DIR
+    / "Final models"
+    / "Pneumoia"
+    / "Pneumonia_model.pkl"
 )
 
 LOS_MODEL_PATH = (
-    r"D:\smart decision\Final models\Length of stay"
-    r"\lengthofstay_model.pkl"
+    BASE_DIR
+    / "Final models"
+    / "Length of stay"
+    / "lengthofstay_model.pkl"
 )
 
 HOSPITAL_MODEL_PATH = (
-    r"D:\smart decision\Final models\Hospital Analysis"
-    r"\hospital_model.pkl"
+    BASE_DIR
+    / "Final models"
+    / "Hospital Analysis"
+    / "hospital_model.pkl"
 )
 
 # =====================================================
