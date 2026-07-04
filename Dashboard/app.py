@@ -769,7 +769,7 @@ elif page == "🫁 Respiratory Condition Assessment":
 
     st.write(
         "Enter respiratory and clinical indicators "
-        "to evaluate pneumonia risk."
+        "to evaluate respiratory risk."
     )
 
     if patient_registered() and system_ready:
