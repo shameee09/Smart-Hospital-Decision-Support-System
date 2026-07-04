@@ -398,7 +398,7 @@ page = st.sidebar.radio(
         "👤 Patient Registration",
         "🩺 Patient Readmission",
         "🛏️ Length of Stay",
-        "🫁 Pneumonia Assessment",
+        "🫁 Respiratory Condition Assessment",
         "🏥 Patient Outcome Analysis",
         "📋 Assessment History",
         "📊 Hospital Analytics"
@@ -489,9 +489,9 @@ if page == "🏠 Home":
 
         st.info(
             """
-            ### 🫁 Pneumonia Assessment
+            ### 🫁 Respiratory Condition Assessment
 
-            Evaluate pneumonia risk using clinical indicators.
+            Evaluate Respiratory Condition  risk using clinical indicators.
             """
         )
 
@@ -761,10 +761,10 @@ elif page == "🛏️ Length of Stay":
 # PNEUMONIA ASSESSMENT
 # =====================================================
 
-elif page == "🫁 Pneumonia Assessment":
+elif page == "🫁 Respiratory Condition Assessment":
 
     st.title(
-        "🫁 Pneumonia Clinical Assessment"
+        "🫁 Respiratory Condition Clinical Assessment"
     )
 
     st.write(
@@ -799,9 +799,9 @@ elif page == "🫁 Pneumonia Assessment":
                 
                 
                 results = {
-                    0: "Normal",
+                    0: "Atelectasis Detected",
                     1: "Pneumonia Detected",
-                    2: "Clinical Review Required"
+                    2: "Pulmonary Edema Detected"
                 }
 
                 result = results.get(
@@ -828,7 +828,7 @@ elif page == "🫁 Pneumonia Assessment":
                     )
 
                 save_prediction(
-                    "Pneumonia Assessment",
+                    "Respiratory Condition Assessment",
                     result
                 )
 
