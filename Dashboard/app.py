@@ -35,6 +35,27 @@ PNEUMONIA_MODEL_PATH = (
     / "Pneumonia_model.pkl"
 )
 
+PNEUMONIA_SCALER_PATH = (
+    BASE_DIR
+    / "Final models"
+    / "Pneumoia"
+    / "Pneumonia_scaler.pkl"
+)
+
+PNEUMONIA_FEATURE_ENCODERS_PATH = (
+    BASE_DIR
+    / "Final models"
+    / "Pneumoia"
+    / "Pneumonia_feature_encoders.pkl"
+)
+
+PNEUMONIA_TARGET_ENCODER_PATH = (
+    BASE_DIR
+    / "Final models"
+    / "Pneumoia"
+    / "Pneumonia_target_encoder.pkl"
+)
+
 LOS_MODEL_PATH = (
     BASE_DIR
     / "Final models"
@@ -57,11 +78,38 @@ HOSPITAL_MODEL_PATH = (
 def load_models():
 
     diabetic = joblib.load(DIABETIC_MODEL_PATH)
-    pneumonia = joblib.load(PNEUMONIA_MODEL_PATH)
-    los = joblib.load(LOS_MODEL_PATH)
-    hospital = joblib.load(HOSPITAL_MODEL_PATH)
 
-    return diabetic, pneumonia, los, hospital
+    pneumonia = joblib.load(
+        PNEUMONIA_MODEL_PATH
+    )
+
+    pneumonia_scaler = joblib.load(
+        PNEUMONIA_SCALER_PATH
+    )
+
+    pneumonia_feature_encoders = joblib.load(
+        PNEUMONIA_FEATURE_ENCODERS_PATH
+    )
+
+    pneumonia_target_encoder = joblib.load(
+        PNEUMONIA_TARGET_ENCODER_PATH
+    )
+
+    los = joblib.load(LOS_MODEL_PATH)
+
+    hospital = joblib.load(
+        HOSPITAL_MODEL_PATH
+    )
+
+    return (
+        diabetic,
+        pneumonia,
+        pneumonia_scaler,
+        pneumonia_feature_encoders,
+        pneumonia_target_encoder,
+        los,
+        hospital
+    )
 
 
 try:
@@ -69,6 +117,9 @@ try:
     (
         diabetic_model,
         pneumonia_model,
+        pneumonia_scaler,
+        pneumonia_feature_encoders,
+        pneumonia_target_encoder,
         los_model,
         hospital_model
     ) = load_models()
@@ -78,7 +129,10 @@ try:
 except Exception as e:
 
     system_ready = False
-    st.error(f"System initialization error: {e}")
+
+    st.error(
+        f"System initialization error: {e}"
+    )
 
 
 # =====================================================
@@ -86,19 +140,25 @@ except Exception as e:
 # =====================================================
 
 if "history" not in st.session_state:
+
     st.session_state.history = []
 
 
 if "patients" not in st.session_state:
+
     st.session_state.patients = []
 
 
 if "patient" not in st.session_state:
 
     st.session_state.patient = {
+
         "Patient ID": "",
+
         "Patient Name": "",
+
         "Age": 25,
+
         "Gender": "Female"
     }
 
@@ -112,17 +172,25 @@ def save_prediction(module, result):
     st.session_state.history.append({
 
         "Patient ID":
-            st.session_state.patient.get("Patient ID", ""),
+            st.session_state.patient.get(
+                "Patient ID",
+                ""
+            ),
 
         "Patient Name":
-            st.session_state.patient.get("Patient Name", ""),
+            st.session_state.patient.get(
+                "Patient Name",
+                ""
+            ),
 
         "Assessment": module,
 
         "Result": result,
 
         "Date":
-            datetime.now().strftime("%d-%m-%Y %H:%M")
+            datetime.now().strftime(
+                "%d-%m-%Y %H:%M"
+            )
     })
 
 
@@ -132,54 +200,18 @@ def save_prediction(module, result):
 
 def patient_registered():
 
-    if not st.session_state.patient["Patient ID"]:
+    if not st.session_state.patient[
+        "Patient ID"
+    ]:
 
         st.warning(
-            "Please register a patient before starting an assessment."
+            "Please register a patient before "
+            "starting an assessment."
         )
 
         return False
 
     return True
-
-
-# =====================================================
-# GENERAL CLINICAL INPUT FUNCTION
-# Used for Pneumonia
-# =====================================================
-
-def clinical_inputs(model, names, prefix):
-
-    count = model.n_features_in_
-
-    fields = names[:count]
-
-    while len(fields) < count:
-
-        fields.append(
-            f"Clinical Measurement {len(fields) + 1}"
-        )
-
-    values = []
-
-    col1, col2 = st.columns(2)
-
-    for i, name in enumerate(fields):
-
-        container = col1 if i % 2 == 0 else col2
-
-        with container:
-
-            value = st.number_input(
-                name,
-                value=0.0,
-                step=0.1,
-                key=f"{prefix}_{i}"
-            )
-
-            values.append(value)
-
-    return np.array(values).reshape(1, -1)
 
 
 # =====================================================
@@ -200,7 +232,9 @@ def diabetic_inputs(model):
             key="diabetic_gender"
         )
 
-        gender_value = 0 if gender == "Female" else 1
+        gender_value = (
+            0 if gender == "Female" else 1
+        )
 
         age_group = st.selectbox(
             "Age Group",
@@ -220,19 +254,31 @@ def diabetic_inputs(model):
         )
 
         age_map = {
+
             "0-10": 0,
+
             "10-20": 1,
+
             "20-30": 2,
+
             "30-40": 3,
+
             "40-50": 4,
+
             "50-60": 5,
+
             "60-70": 6,
+
             "70-80": 7,
+
             "80-90": 8,
+
             "90-100": 9
         }
 
-        age_value = age_map[age_group]
+        age_value = age_map[
+            age_group
+        ]
 
         time_hospital = st.number_input(
             "Time in Hospital (Days)",
@@ -270,27 +316,41 @@ def diabetic_inputs(model):
         )
 
     possible_values = [
+
         gender_value,
+
         age_value,
+
         time_hospital,
+
         lab_procedures,
+
         medications,
+
         diagnoses
     ]
 
-    values = possible_values[:count]
+    values = possible_values[
+        :count
+    ]
 
     while len(values) < count:
 
         extra = st.number_input(
-            f"Additional Clinical Measurement {len(values) + 1}",
+            f"Additional Clinical Measurement "
+            f"{len(values) + 1}",
             value=0.0,
-            key=f"diabetic_extra_{len(values)}"
+            key=(
+                f"diabetic_extra_"
+                f"{len(values)}"
+            )
         )
 
         values.append(extra)
 
-    return np.array(values).reshape(1, -1)
+    return np.array(
+        values
+    ).reshape(1, -1)
 
 
 # =====================================================
@@ -307,42 +367,74 @@ def los_inputs(model):
         key="los_gender"
     )
 
-    gender_value = 0 if gender == "Female" else 1
+    gender_value = (
+        0 if gender == "Female" else 1
+    )
 
     field_names = [
+
         "Dialysis / Renal Condition",
+
         "Asthma",
+
         "Iron Deficiency",
+
         "Pneumonia History",
+
         "Substance Use",
+
         "Psychological Condition",
+
         "Depression",
+
         "Psychotherapy History",
+
         "Fibrosis",
+
         "Malnutrition",
+
         "Hemoglobin",
+
         "Hematocrit",
+
         "Neutrophil Count",
+
         "Sodium Level",
+
         "Glucose Level",
+
         "Blood Urea",
+
         "Creatinine",
+
         "BMI",
+
         "Pulse Rate",
+
         "Respiration Rate",
+
         "Secondary Diagnosis Count",
+
         "Facility Code"
     ]
 
-    values = [gender_value]
+    values = [
+        gender_value
+    ]
 
     col1, col2 = st.columns(2)
 
     needed = count - 1
 
-    for i, name in enumerate(field_names[:needed]):
+    for i, name in enumerate(
+        field_names[:needed]
+    ):
 
-        container = col1 if i % 2 == 0 else col2
+        container = (
+            col1
+            if i % 2 == 0
+            else col2
+        )
 
         with container:
 
@@ -358,49 +450,53 @@ def los_inputs(model):
     while len(values) < count:
 
         extra = st.number_input(
-            f"Additional Clinical Measurement {len(values) + 1}",
+            f"Additional Clinical Measurement "
+            f"{len(values) + 1}",
             value=0.0,
-            key=f"los_extra_{len(values)}"
+            key=(
+                f"los_extra_"
+                f"{len(values)}"
+            )
         )
 
         values.append(extra)
 
-    return np.array(values).reshape(1, -1)
-
-
-# =====================================================
-# PNEUMONIA FIELDS
-# =====================================================
-
-PNEUMONIA_FIELDS = [
-    "Fever Status",
-    "Heart Rate / Tachycardia",
-    "Crackles",
-    "Oxygen Saturation (%)",
-    "White Blood Cell Count"
-]
+    return np.array(
+        values
+    ).reshape(1, -1)
 
 
 # =====================================================
 # SIDEBAR
 # =====================================================
 
-st.sidebar.title("🏥 Smart Hospital Support")
+st.sidebar.title(
+    "🏥 Smart Hospital Support"
+)
 
 st.sidebar.caption(
     "Clinical Decision Support Platform"
 )
 
 page = st.sidebar.radio(
+
     "Navigation",
+
     [
         "🏠 Home",
+
         "👤 Patient Registration",
+
         "🩺 Patient Readmission",
+
         "🛏️ Length of Stay",
+
         "🫁 Respiratory Condition Assessment",
+
         "🏥 Patient Outcome Analysis",
+
         "📋 Assessment History",
+
         "📊 Hospital Analytics"
     ]
 )
@@ -408,9 +504,16 @@ page = st.sidebar.radio(
 st.sidebar.divider()
 
 if system_ready:
-    st.sidebar.success("● System Ready")
+
+    st.sidebar.success(
+        "● System Ready"
+    )
+
 else:
-    st.sidebar.error("● System Unavailable")
+
+    st.sidebar.error(
+        "● System Unavailable"
+    )
 
 
 # =====================================================
@@ -424,16 +527,24 @@ if page == "🏠 Home":
     )
 
     st.write(
-        "Clinical decision-support platform for doctors, "
-        "nurses and hospital administrators."
+        "Clinical decision-support platform "
+        "for doctors, nurses and hospital "
+        "administrators."
     )
 
     st.divider()
 
-    st.subheader("Hospital Overview")
+    st.subheader(
+        "Hospital Overview"
+    )
 
-    total_patients = len(st.session_state.patients)
-    total_assessments = len(st.session_state.history)
+    total_patients = len(
+        st.session_state.patients
+    )
+
+    total_assessments = len(
+        st.session_state.history
+    )
 
     c1, c2, c3, c4 = st.columns(4)
 
@@ -454,7 +565,11 @@ if page == "🏠 Home":
 
     c4.metric(
         "System Status",
-        "Live" if system_ready else "Unavailable"
+        (
+            "Live"
+            if system_ready
+            else "Unavailable"
+        )
     )
 
     st.divider()
@@ -491,7 +606,7 @@ if page == "🏠 Home":
             """
             ### 🫁 Respiratory Condition Assessment
 
-            Evaluate Respiratory Condition  risk using clinical indicators.
+            Evaluate respiratory conditions using clinical indicators.
             """
         )
 
@@ -512,14 +627,18 @@ if page == "🏠 Home":
 
 elif page == "👤 Patient Registration":
 
-    st.title("👤 Patient Registration")
+    st.title(
+        "👤 Patient Registration"
+    )
 
     st.write(
         "Register the patient before starting "
         "a clinical assessment."
     )
 
-    with st.form("patient_registration"):
+    with st.form(
+        "patient_registration"
+    ):
 
         c1, c2 = st.columns(2)
 
@@ -545,7 +664,11 @@ elif page == "👤 Patient Registration":
 
             gender = st.selectbox(
                 "Gender",
-                ["Female", "Male", "Other"]
+                [
+                    "Female",
+                    "Male",
+                    "Other"
+                ]
             )
 
         submit = st.form_submit_button(
@@ -557,26 +680,43 @@ elif page == "👤 Patient Registration":
 
             if not patient_id:
 
-                st.error("Please enter Patient ID.")
+                st.error(
+                    "Please enter Patient ID."
+                )
 
             elif not patient_name:
 
-                st.error("Please enter Patient Name.")
+                st.error(
+                    "Please enter Patient Name."
+                )
 
             else:
 
                 patient_record = {
-                    "Patient ID": patient_id,
-                    "Patient Name": patient_name,
-                    "Age": age,
-                    "Gender": gender
+
+                    "Patient ID":
+                        patient_id,
+
+                    "Patient Name":
+                        patient_name,
+
+                    "Age":
+                        age,
+
+                    "Gender":
+                        gender
                 }
 
-                st.session_state.patient = patient_record
+                st.session_state.patient = (
+                    patient_record
+                )
 
                 existing_ids = [
+
                     patient["Patient ID"]
-                    for patient in st.session_state.patients
+
+                    for patient in
+                    st.session_state.patients
                 ]
 
                 if patient_id not in existing_ids:
@@ -597,7 +737,9 @@ elif page == "👤 Patient Registration":
 
     if st.session_state.patients:
 
-        st.subheader("Registered Patients")
+        st.subheader(
+            "Registered Patients"
+        )
 
         patients_df = pd.DataFrame(
             st.session_state.patients
@@ -611,7 +753,6 @@ elif page == "👤 Patient Registration":
 
 # =====================================================
 # PATIENT READMISSION
-# FIXED: SAME NAME AS SIDEBAR
 # =====================================================
 
 elif page == "🩺 Patient Readmission":
@@ -621,8 +762,8 @@ elif page == "🩺 Patient Readmission":
     )
 
     st.write(
-        "Enter the patient's clinical information "
-        "to assess readmission risk."
+        "Enter the patient's clinical "
+        "information to assess readmission risk."
     )
 
     if patient_registered() and system_ready:
@@ -644,14 +785,22 @@ elif page == "🩺 Patient Readmission":
 
             try:
 
-                prediction = diabetic_model.predict(
-                    user_input
-                )[0]
+                prediction = (
+                    diabetic_model.predict(
+                        user_input
+                    )[0]
+                )
 
                 results = {
-                    0: "No Readmission Expected",
-                    1: "Readmission Within 30 Days",
-                    2: "Readmission After 30 Days"
+
+                    0:
+                        "No Readmission Expected",
+
+                    1:
+                        "Readmission Within 30 Days",
+
+                    2:
+                        "Readmission After 30 Days"
                 }
 
                 result = results.get(
@@ -717,22 +866,30 @@ elif page == "🛏️ Length of Stay":
 
             try:
 
-                prediction = los_model.predict(
-                    user_input
-                )[0]
+                prediction = (
+                    los_model.predict(
+                        user_input
+                    )[0]
+                )
 
                 days = max(
                     0,
-                    round(float(prediction), 1)
+                    round(
+                        float(prediction),
+                        1
+                    )
                 )
 
                 if days <= 3:
+
                     category = "Short Stay"
 
                 elif days <= 7:
+
                     category = "Moderate Stay"
 
                 else:
+
                     category = "Extended Stay"
 
                 st.success(
@@ -747,7 +904,10 @@ elif page == "🛏️ Length of Stay":
 
                 save_prediction(
                     "Length of Stay",
-                    f"{days} Days — {category}"
+                    (
+                        f"{days} Days — "
+                        f"{category}"
+                    )
                 )
 
             except Exception as e:
@@ -758,7 +918,7 @@ elif page == "🛏️ Length of Stay":
 
 
 # =====================================================
-# PNEUMONIA ASSESSMENT
+# RESPIRATORY CONDITION ASSESSMENT
 # =====================================================
 
 elif page == "🫁 Respiratory Condition Assessment":
@@ -769,7 +929,7 @@ elif page == "🫁 Respiratory Condition Assessment":
 
     st.write(
         "Enter respiratory and clinical indicators "
-        "to evaluate respiratory risk."
+        "to assess the patient's respiratory condition."
     )
 
     if patient_registered() and system_ready:
@@ -780,56 +940,177 @@ elif page == "🫁 Respiratory Condition Assessment":
             f"({st.session_state.patient['Patient ID']})"
         )
 
-        user_input = clinical_inputs(
-            pneumonia_model,
-            PNEUMONIA_FIELDS.copy(),
-            "pneumonia"
+        timestamp_encoder = (
+            pneumonia_feature_encoders[
+                "timestamp"
+            ]
         )
 
+        xray_encoder = (
+            pneumonia_feature_encoders[
+                "chest_xray_result"
+            ]
+        )
+
+        timestamp_options = list(
+            timestamp_encoder.classes_
+        )
+
+        xray_options = list(
+            xray_encoder.classes_
+        )
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+
+            timestamp = st.selectbox(
+                "Clinical Record Timestamp",
+                timestamp_options,
+                key="resp_timestamp"
+            )
+
+            tachycardia = st.selectbox(
+                "Tachycardia",
+                ["No", "Yes"],
+                key="resp_tachycardia"
+            )
+
+            crackles = st.selectbox(
+                "Crackles",
+                ["No", "Yes"],
+                key="resp_crackles"
+            )
+
+        with col2:
+
+            chest_xray = st.selectbox(
+                "Chest X-Ray Result",
+                xray_options,
+                key="resp_xray"
+            )
+
+            uncertainty_score = (
+                st.number_input(
+                    "Uncertainty Score",
+                    min_value=0.0,
+                    max_value=1.0,
+                    value=0.50,
+                    step=0.01,
+                    key="resp_uncertainty"
+                )
+            )
+
         if st.button(
-            "Assess Pneumonia Risk",
+            "Assess Respiratory Condition",
             type="primary"
         ):
 
             try:
 
-                prediction = pneumonia_model.predict(
-                    user_input
-                )[0]
-                
-                
-                results = {
-                    0: "Atelectasis Detected",
-                    1: "Pneumonia Detected",
-                    2: "Pulmonary Edema Detected"
-                }
-
-                result = results.get(
-                    int(prediction),
-                    "Clinical Review Required"
+                timestamp_value = (
+                    timestamp_encoder.transform(
+                        [timestamp]
+                    )[0]
                 )
 
-                if int(prediction) == 0:
+                xray_value = (
+                    xray_encoder.transform(
+                        [chest_xray]
+                    )[0]
+                )
 
-                    st.success(
-                        f"### ✅ Assessment Result: {result}"
+                tachycardia_value = (
+                    1
+                    if tachycardia == "Yes"
+                    else 0
+                )
+
+                crackles_value = (
+                    1
+                    if crackles == "Yes"
+                    else 0
+                )
+
+                user_input = np.array(
+                    [[
+                        timestamp_value,
+                        tachycardia_value,
+                        crackles_value,
+                        xray_value,
+                        uncertainty_score
+                    ]],
+                    dtype=float
+                )
+
+                scaled_input = (
+                    pneumonia_scaler.transform(
+                        user_input
+                    )
+                )
+
+                prediction = (
+                    pneumonia_model.predict(
+                        scaled_input
+                    )[0]
+                )
+
+                result = (
+                    pneumonia_target_encoder
+                    .inverse_transform(
+                        [int(prediction)]
+                    )[0]
+                )
+
+                result = str(
+                    result
+                ).title()
+
+                if result == "Atelectasis":
+
+                    display_result = (
+                        "Atelectasis Detected"
                     )
 
-                elif int(prediction) == 1:
+                    st.warning(
+                        f"### 🫁 Assessment Result: "
+                        f"{display_result}"
+                    )
+
+                elif result == "Pneumonia":
+
+                    display_result = (
+                        "Pneumonia Detected"
+                    )
 
                     st.error(
-                        f"### ⚠️ Assessment Result: {result}"
+                        f"### 🫁 Assessment Result: "
+                        f"{display_result}"
+                    )
+
+                elif result == "Pulmonary Edema":
+
+                    display_result = (
+                        "Pulmonary Edema Detected"
+                    )
+
+                    st.warning(
+                        f"### 🫁 Assessment Result: "
+                        f"{display_result}"
                     )
 
                 else:
 
-                    st.warning(
-                        f"### ⚠️ Assessment Result: {result}"
+                    display_result = result
+
+                    st.info(
+                        f"### Assessment Result: "
+                        f"{display_result}"
                     )
 
                 save_prediction(
                     "Respiratory Condition Assessment",
-                    result
+                    display_result
                 )
 
             except Exception as e:
@@ -841,12 +1122,13 @@ elif page == "🫁 Respiratory Condition Assessment":
 
 # =====================================================
 # PATIENT OUTCOME ANALYSIS
-# FIXED CATEGORICAL INPUTS
 # =====================================================
 
 elif page == "🏥 Patient Outcome Analysis":
 
-    st.title("🏥 Patient Outcome Analysis")
+    st.title(
+        "🏥 Patient Outcome Analysis"
+    )
 
     st.write(
         "Enter patient and treatment information "
@@ -863,10 +1145,6 @@ elif page == "🏥 Patient Outcome Analysis":
 
         col1, col2 = st.columns(2)
 
-        # -----------------------------
-        # COLUMN 1
-        # -----------------------------
-
         with col1:
 
             age = st.number_input(
@@ -875,7 +1153,8 @@ elif page == "🏥 Patient Outcome Analysis":
                 max_value=120,
                 value=int(
                     st.session_state.patient.get(
-                        "Age", 25
+                        "Age",
+                        25
                     )
                 ),
                 key="hospital_age"
@@ -883,7 +1162,10 @@ elif page == "🏥 Patient Outcome Analysis":
 
             gender = st.selectbox(
                 "Gender",
-                ["Female", "Male"],
+                [
+                    "Female",
+                    "Male"
+                ],
                 key="hospital_gender"
             )
 
@@ -925,10 +1207,6 @@ elif page == "🏥 Patient Outcome Analysis":
                 key="hospital_procedure"
             )
 
-        # -----------------------------
-        # COLUMN 2
-        # -----------------------------
-
         with col2:
 
             cost = st.number_input(
@@ -939,13 +1217,15 @@ elif page == "🏥 Patient Outcome Analysis":
                 key="hospital_cost"
             )
 
-            length_of_stay = st.number_input(
-                "Length of Stay (Days)",
-                min_value=1,
-                max_value=365,
-                value=3,
-                step=1,
-                key="hospital_stay"
+            length_of_stay = (
+                st.number_input(
+                    "Length of Stay (Days)",
+                    min_value=1,
+                    max_value=365,
+                    value=3,
+                    step=1,
+                    key="hospital_stay"
+                )
             )
 
             readmission = st.selectbox(
@@ -961,11 +1241,6 @@ elif page == "🏥 Patient Outcome Analysis":
                 value=3,
                 key="hospital_satisfaction"
             )
-
-        # =================================================
-        # INTERNAL ENCODING
-        # User sees words; model receives numbers
-        # =================================================
 
         gender_options = [
             "Female",
@@ -1002,41 +1277,63 @@ elif page == "🏥 Patient Outcome Analysis":
             "Delivery and Postnatal Care"
         ]
 
-        gender_value = gender_options.index(
-            gender
+        gender_value = (
+            gender_options.index(
+                gender
+            )
         )
 
-        condition_value = condition_options.index(
-            condition
+        condition_value = (
+            condition_options.index(
+                condition
+            )
         )
 
-        procedure_value = procedure_options.index(
-            procedure
+        procedure_value = (
+            procedure_options.index(
+                procedure
+            )
         )
 
         readmission_value = (
-            0 if readmission == "No" else 1
+            0
+            if readmission == "No"
+            else 1
         )
 
-        # All dataset input columns except Outcome target
         all_hospital_values = [
+
             age,
+
             gender_value,
+
             condition_value,
+
             procedure_value,
+
             cost,
+
             length_of_stay,
+
             readmission_value,
+
             satisfaction
         ]
 
-        required_count = hospital_model.n_features_in_
+        required_count = (
+            hospital_model.n_features_in_
+        )
 
-        hospital_values = all_hospital_values[
-            :required_count
-        ]
+        hospital_values = (
+            all_hospital_values[
+                :required_count
+            ]
+        )
 
-        while len(hospital_values) < required_count:
+        while (
+            len(hospital_values)
+            < required_count
+        ):
 
             hospital_values.append(0)
 
@@ -1051,14 +1348,22 @@ elif page == "🏥 Patient Outcome Analysis":
 
             try:
 
-                prediction = hospital_model.predict(
-                    user_input
-                )[0]
+                prediction = (
+                    hospital_model.predict(
+                        user_input
+                    )[0]
+                )
 
                 outcomes = {
-                    0: "Recovered",
-                    1: "Stable",
-                    2: "Requires Continued Monitoring"
+
+                    0:
+                        "Recovered",
+
+                    1:
+                        "Stable",
+
+                    2:
+                        "Requires Continued Monitoring"
                 }
 
                 result = outcomes.get(
@@ -1069,19 +1374,22 @@ elif page == "🏥 Patient Outcome Analysis":
                 if result == "Recovered":
 
                     st.success(
-                        f"### ✅ Expected Outcome: {result}"
+                        f"### ✅ Expected Outcome: "
+                        f"{result}"
                     )
 
                 elif result == "Stable":
 
                     st.info(
-                        f"### 🩺 Expected Outcome: {result}"
+                        f"### 🩺 Expected Outcome: "
+                        f"{result}"
                     )
 
                 else:
 
                     st.warning(
-                        f"### ⚠️ Expected Outcome: {result}"
+                        f"### ⚠️ Expected Outcome: "
+                        f"{result}"
                     )
 
                 save_prediction(
@@ -1102,12 +1410,15 @@ elif page == "🏥 Patient Outcome Analysis":
 
 elif page == "📋 Assessment History":
 
-    st.title("📋 Patient Assessment History")
+    st.title(
+        "📋 Patient Assessment History"
+    )
 
     if not st.session_state.history:
 
         st.info(
-            "No clinical assessments have been recorded yet."
+            "No clinical assessments have "
+            "been recorded yet."
         )
 
     else:
@@ -1136,7 +1447,9 @@ elif page == "📋 Assessment History":
 
 elif page == "📊 Hospital Analytics":
 
-    st.title("📊 Hospital Analytics")
+    st.title(
+        "📊 Hospital Analytics"
+    )
 
     total_patients = len(
         st.session_state.patients
@@ -1165,7 +1478,9 @@ elif page == "📊 Hospital Analytics":
         )
 
         services_used = (
-            history_df["Assessment"].nunique()
+            history_df[
+                "Assessment"
+            ].nunique()
         )
 
     else:
