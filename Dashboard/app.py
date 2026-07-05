@@ -945,11 +945,7 @@ elif page == "🫁 Respiratory Condition Assessment":
                 "chest_xray_result"
             ]
         )
-
-        timestamp_options = list(
-            timestamp_encoder.classes_
-        )
-
+        
         xray_options = list(
             xray_encoder.classes_
         )
