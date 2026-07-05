@@ -940,12 +940,6 @@ elif page == "🫁 Respiratory Condition Assessment":
             f"({st.session_state.patient['Patient ID']})"
         )
 
-        timestamp_encoder = (
-            pneumonia_feature_encoders[
-                "timestamp"
-            ]
-        )
-
         xray_encoder = (
             pneumonia_feature_encoders[
                 "chest_xray_result"
@@ -963,12 +957,6 @@ elif page == "🫁 Respiratory Condition Assessment":
         col1, col2 = st.columns(2)
 
         with col1:
-
-            timestamp = st.selectbox(
-                "Clinical Record Timestamp",
-                timestamp_options,
-                key="resp_timestamp"
-            )
 
             tachycardia = st.selectbox(
                 "Tachycardia",
@@ -1008,12 +996,6 @@ elif page == "🫁 Respiratory Condition Assessment":
 
             try:
 
-                timestamp_value = (
-                    timestamp_encoder.transform(
-                        [timestamp]
-                    )[0]
-                )
-
                 xray_value = (
                     xray_encoder.transform(
                         [chest_xray]
@@ -1034,7 +1016,6 @@ elif page == "🫁 Respiratory Condition Assessment":
 
                 user_input = np.array(
                     [[
-                        timestamp_value,
                         tachycardia_value,
                         crackles_value,
                         xray_value,
