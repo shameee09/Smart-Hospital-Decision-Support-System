@@ -70,6 +70,18 @@ HOSPITAL_MODEL_PATH = (
     / "hospital_model.pkl"
 )
 
+HOSPITAL_SCALER_PATH = (
+    BASE_DIR / "Final models" / "Hospital Analysis" / "hospital_scaler.pkl"
+)
+
+HOSPITAL_FEATURE_ENCODERS_PATH = (
+    BASE_DIR / "Final models" / "Hospital Analysis" / "hospital_feature_encoders.pkl"
+)
+
+HOSPITAL_TARGET_ENCODER_PATH = (
+    BASE_DIR / "Final models" / "Hospital Analysis" / "hospital_target_encoder.pkl"
+)
+
 # =====================================================
 # LOAD MODELS
 # =====================================================
@@ -97,9 +109,10 @@ def load_models():
 
     los = joblib.load(LOS_MODEL_PATH)
 
-    hospital = joblib.load(
-        HOSPITAL_MODEL_PATH
-    )
+    hospital = joblib.load(HOSPITAL_MODEL_PATH)
+    hospital_scaler = joblib.load(HOSPITAL_SCALER_PATH)
+    hospital_feature_encoders = joblib.load(HOSPITAL_FEATURE_ENCODERS_PATH)
+    hospital_target_encoder = joblib.load(HOSPITAL_TARGET_ENCODER_PATH)
 
     return (
         diabetic,
@@ -108,7 +121,10 @@ def load_models():
         pneumonia_feature_encoders,
         pneumonia_target_encoder,
         los,
-        hospital
+        hospital,
+        hospital_scaler,
+        hospital_feature_encoders,
+        hospital_target_encoder
     )
 
 
@@ -121,7 +137,10 @@ try:
         pneumonia_feature_encoders,
         pneumonia_target_encoder,
         los_model,
-        hospital_model
+        hospital_model,
+        hospital_scaler,
+        hospital_feature_encoders,
+        hospital_target_encoder
     ) = load_models()
 
     system_ready = True
@@ -1110,9 +1129,7 @@ elif page == "🫁 Respiratory Condition Assessment":
 
 elif page == "🏥 Patient Outcome Analysis":
 
-    st.title(
-        "🏥 Patient Outcome Analysis"
-    )
+    st.title("🏥 Patient Outcome Analysis")
 
     st.write(
         "Enter patient and treatment information "
@@ -1127,6 +1144,12 @@ elif page == "🏥 Patient Outcome Analysis":
             f"({st.session_state.patient['Patient ID']})"
         )
 
+        condition_encoder = hospital_feature_encoders["Condition"]
+        procedure_encoder = hospital_feature_encoders["Procedure"]
+
+        condition_options = list(condition_encoder.classes_)
+        procedure_options = list(procedure_encoder.classes_)
+
         col1, col2 = st.columns(2)
 
         with col1:
@@ -1135,59 +1158,20 @@ elif page == "🏥 Patient Outcome Analysis":
                 "Patient Age",
                 min_value=0,
                 max_value=120,
-                value=int(
-                    st.session_state.patient.get(
-                        "Age",
-                        25
-                    )
-                ),
+                value=int(st.session_state.patient.get("Age", 25)),
+                step=1,
                 key="hospital_age"
-            )
-
-            gender = st.selectbox(
-                "Gender",
-                [
-                    "Female",
-                    "Male"
-                ],
-                key="hospital_gender"
             )
 
             condition = st.selectbox(
                 "Medical Condition",
-                [
-                    "Heart Disease",
-                    "Diabetes",
-                    "Fracture",
-                    "Stroke",
-                    "Cancer",
-                    "Hypertension",
-                    "Appendicitis",
-                    "Heart Attack",
-                    "Allergic Reaction",
-                    "Respiratory Infection",
-                    "Prostate Condition",
-                    "Childbirth"
-                ],
+                condition_options,
                 key="hospital_condition"
             )
 
             procedure = st.selectbox(
                 "Medical Procedure",
-                [
-                    "Angioplasty",
-                    "Insulin Therapy",
-                    "X-Ray and Casting",
-                    "CT Scan and Treatment",
-                    "Surgery and Chemotherapy",
-                    "Medication",
-                    "Appendectomy",
-                    "Cardiac Care",
-                    "Epinephrine",
-                    "Antibiotics",
-                    "Radiation Therapy",
-                    "Delivery and Postnatal Care"
-                ],
+                procedure_options,
                 key="hospital_procedure"
             )
 
@@ -1201,23 +1185,6 @@ elif page == "🏥 Patient Outcome Analysis":
                 key="hospital_cost"
             )
 
-            length_of_stay = (
-                st.number_input(
-                    "Length of Stay (Days)",
-                    min_value=1,
-                    max_value=365,
-                    value=3,
-                    step=1,
-                    key="hospital_stay"
-                )
-            )
-
-            readmission = st.selectbox(
-                "Readmission",
-                ["No", "Yes"],
-                key="hospital_readmission"
-            )
-
             satisfaction = st.slider(
                 "Patient Satisfaction Score",
                 min_value=1,
@@ -1226,105 +1193,6 @@ elif page == "🏥 Patient Outcome Analysis":
                 key="hospital_satisfaction"
             )
 
-        gender_options = [
-            "Female",
-            "Male"
-        ]
-
-        condition_options = [
-            "Heart Disease",
-            "Diabetes",
-            "Fracture",
-            "Stroke",
-            "Cancer",
-            "Hypertension",
-            "Appendicitis",
-            "Heart Attack",
-            "Allergic Reaction",
-            "Respiratory Infection",
-            "Prostate Condition",
-            "Childbirth"
-        ]
-
-        procedure_options = [
-            "Angioplasty",
-            "Insulin Therapy",
-            "X-Ray and Casting",
-            "CT Scan and Treatment",
-            "Surgery and Chemotherapy",
-            "Medication",
-            "Appendectomy",
-            "Cardiac Care",
-            "Epinephrine",
-            "Antibiotics",
-            "Radiation Therapy",
-            "Delivery and Postnatal Care"
-        ]
-
-        gender_value = (
-            gender_options.index(
-                gender
-            )
-        )
-
-        condition_value = (
-            condition_options.index(
-                condition
-            )
-        )
-
-        procedure_value = (
-            procedure_options.index(
-                procedure
-            )
-        )
-
-        readmission_value = (
-            0
-            if readmission == "No"
-            else 1
-        )
-
-        all_hospital_values = [
-
-            age,
-
-            gender_value,
-
-            condition_value,
-
-            procedure_value,
-
-            cost,
-
-            length_of_stay,
-
-            readmission_value,
-
-            satisfaction
-        ]
-
-        required_count = (
-            hospital_model.n_features_in_
-        )
-
-        hospital_values = (
-            all_hospital_values[
-                :required_count
-            ]
-        )
-
-        while (
-            len(hospital_values)
-            < required_count
-        ):
-
-            hospital_values.append(0)
-
-        user_input = np.array(
-            hospital_values
-        ).reshape(1, -1)
-
         if st.button(
             "Analyze Patient Outcome",
             type="primary"
@@ -1332,48 +1200,46 @@ elif page == "🏥 Patient Outcome Analysis":
 
             try:
 
-                prediction = (
-                    hospital_model.predict(
-                        user_input
-                    )[0]
+                condition_value = condition_encoder.transform([condition])[0]
+                procedure_value = procedure_encoder.transform([procedure])[0]
+
+                user_input = np.array(
+                    [[
+                        age,
+                        condition_value,
+                        procedure_value,
+                        cost,
+                        satisfaction
+                    ]],
+                    dtype=float
                 )
 
-                outcomes = {
+                scaled_input = hospital_scaler.transform(user_input)
 
-                    0:
-                        "Recovered",
+                prediction = hospital_model.predict(scaled_input)[0]
 
-                    1:
-                        "Stable",
+                result = hospital_target_encoder.inverse_transform(
+                    [int(prediction)]
+                )[0]
 
-                    2:
-                        "Requires Continued Monitoring"
-                }
-
-                result = outcomes.get(
-                    int(prediction),
-                    "Requires Clinical Review"
-                )
+                result = str(result)
 
                 if result == "Recovered":
 
                     st.success(
-                        f"### ✅ Expected Outcome: "
-                        f"{result}"
+                        f"### ✅ Expected Outcome: {result}"
                     )
 
                 elif result == "Stable":
 
                     st.info(
-                        f"### 🩺 Expected Outcome: "
-                        f"{result}"
+                        f"### 🩺 Expected Outcome: {result}"
                     )
 
                 else:
 
                     st.warning(
-                        f"### ⚠️ Expected Outcome: "
-                        f"{result}"
+                        f"### ⚠️ Expected Outcome: {result}"
                     )
 
                 save_prediction(
