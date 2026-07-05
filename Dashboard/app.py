@@ -967,11 +967,17 @@ elif page == "🫁 Respiratory Condition Assessment":
             )
 
         with col2:
-
             chest_xray = st.selectbox(
                 "Chest X-Ray Result",
                 xray_options,
                 key="resp_xray"
+            )
+            wbc_count = st.number_input(
+                "White Blood Cell Count",
+                min_value=0.0,
+                value=7.5,
+                step=0.1,
+                key="resp_wbc"
             )
 
             uncertainty_score = (
@@ -1014,6 +1020,7 @@ elif page == "🫁 Respiratory Condition Assessment":
                     [[
                         tachycardia_value,
                         crackles_value,
+                        wbc_count,
                         xray_value,
                         uncertainty_score
                     ]],
